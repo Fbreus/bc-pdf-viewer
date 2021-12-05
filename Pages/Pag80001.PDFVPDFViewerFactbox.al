@@ -1,9 +1,9 @@
-page 80001 "PDFV PDF Viewer Factbox"
+page 82004 "PDFV PDF Viewer Factbox"
 {
 
     Caption = 'PDF Viewer';
     PageType = CardPart;
-    SourceTable = "PDFV PDF Storage";
+    SourceTable = "integer";
     DeleteAllowed = false;
     InsertAllowed = false;
     LinksAllowed = false;
@@ -56,40 +56,74 @@ page 80001 "PDFV PDF Viewer Factbox"
     local procedure SetPDFDocument()
     var
         Base64Convert: Codeunit "Base64 Convert";
-        TempBlob: Codeunit "Temp Blob";
-        InStreamVar: InStream;
-        PDFAsTxt: Text;
+
+
     begin
-        Rec.CalcFields("PDF Value");
-        CurrPage.PDFViewer.SetVisible(Rec."PDF Value".HasValue());
-        if not Rec."PDF Value".HasValue() then
-            exit;
 
-        TempBlob.FromRecord(Rec, Rec.FieldNo("PDF Value"));
-        TempBlob.CreateInStream(InStreamVar);
-
-        PDFAsTxt := Base64Convert.ToBase64(InStreamVar);
+        //PDFAsTxt := Base64Convert.ToBase64(PDFInstream);
 
         CurrPage.PDFViewer.LoadPDF(PDFAsTxt, true);
     end;
 
-    procedure SetRecord(EntryNo: BigInteger)
+    procedure SetRecord()
     begin
-        Rec.SetRange("Entry No.", EntryNo);
+        Rec.SetRange(Number, 1);
         if not Rec.FindFirst() then
             exit;
         SetPDFDocument();
         CurrPage.Update(false);
     end;
 
+    procedure SetRecordWithBoundingBox(BoundingBoxObject: JsonObject)
+    var
+        OCRAPIMg: Codeunit "OCR API Mg";
+        X: decimal;
+        y: Decimal;
+        width: decimal;
+        height: decimal;
+
+    begin
+        Rec.SetRange(Number, 1);
+        if not Rec.FindFirst() then
+            exit;
+        SetPDFDocument();
+        OCRAPIMg.CalculateBoundingBoxValue(x, y, width, height, BoundingBoxObject);
+        CurrPage.PDFViewer.drawRectangle(x, y, width, height);
+        CurrPage.Update(false);
+    end;
+
+
     local procedure RunFullView()
     var
         PDFViewerCard: Page "PDFV PDF Viewer";
     begin
-        if Rec.IsEmpty() then
-            exit;
         PDFViewerCard.SetRecord(Rec);
-        PDFViewerCard.SetTableView(Rec);
+        PDFViewerCard.SetPDFText(PDFAsTxt);
+        PDFViewerCard.SetTableView(rec);
         PDFViewerCard.Run();
     end;
+
+    procedure SetInstreamVar(var InstreamVar: instream)
+    var
+        Tempblob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        PDFOutstream: OutStream;
+    begin
+        clear(PDFInstream);
+        Tempblob.CreateOutStream(PDFOutstream);
+        CopyStream(PDFOutstream, InstreamVar);
+        Tempblob.CreateInStream(PDFInstream);
+
+
+
+        PDFAsTxt := Base64Convert.ToBase64(PDFInstream);
+    end;
+
+
+
+    var
+        PDFAsTxt: text;
+        PDFInstream: InStream;
+
+
 }

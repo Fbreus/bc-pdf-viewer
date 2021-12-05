@@ -1,7 +1,10 @@
 #the-canvas {
-	border: 1px solid black;
-	direction: ltr;
-  }
+    border: 1px solid black;
+    direction: ltr;
+    position: absolute;
+    top: 50px;
+    left: 0;
+}
 
 
 #pdf-buttons {
@@ -28,4 +31,20 @@
 #pdf-contents {
 	width: fit-content;
 	margin: 20px auto;
+}
+
+canvas#rectangleCanvas {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    aspect-ratio: auto 357 / 505;
+
+}
+
+
+div#pdf-meta {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
